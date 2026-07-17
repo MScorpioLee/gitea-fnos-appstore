@@ -61,6 +61,22 @@
       },
       {
         "type": "tips",
+        "helpText": "当选择 SQLite 时，可自定义数据库文件存放路径。路径请填写 NAS 上实际存在的目录，如 /vol2/1000/gitea/data/"
+      },
+      {
+        "type": "text",
+        "field": "db_sqlite_path",
+        "label": "SQLite 数据库文件路径",
+        "initValue": "/vol2/1000/gitea/data/gitea.db",
+        "rules": [
+          {
+            "required": true,
+            "message": "请输入 SQLite 数据库路径"
+          }
+        ]
+      },
+      {
+        "type": "tips",
         "helpText": "下面为外部数据库配置（SQLite 无需填写）。"
       },
       {

@@ -24,9 +24,9 @@ DB_NAME="${db_name:-gitea}"
 DB_USER="${db_user:-gitea}"
 DB_PASS="${db_password:-}"
 
-# SQLite 路径固定到 var 目录
+# SQLite 路径：优先使用 wizard 配置，否则默认到 var 目录
 if [ "${DB_TYPE}" = "sqlite" ]; then
-    DB_SQLITE_PATH="${GITEA_VAR}/gitea.db"
+    DB_SQLITE_PATH="${db_sqlite_path:-${GITEA_VAR}/gitea.db}"
 fi
 
 write_config() {
@@ -106,6 +106,12 @@ start)
 
     # 创建必要的目录
     mkdir -p "${GITEA_HOME}" "${GITEA_VAR}" "${GITEA_ETC}" "${TRIM_APPDEST}"
+    # 确保 SQLite 数据库目录存在
+    if [ "${DB_TYPE}" = "sqlite" ] && [ -n "${DB_SQLITE_PATH}" ]; then
+        DB_DIR=$(dirname "${DB_SQLITE_PATH}")
+        mkdir -p "${DB_DIR}"
+        chown -R "${GITEA_USER}:${GITEA_USER}" "${DB_DIR}"
+    fi
     chown -R "${GITEA_USER}:${GITEA_USER}" "${GITEA_HOME}" "${GITEA_VAR}" "${GITEA_ETC}" "${TRIM_APPDEST}"
 
     # 如果配置文件不存在，生成默认配置
