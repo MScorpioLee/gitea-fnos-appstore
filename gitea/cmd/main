@@ -10,7 +10,7 @@ GITEA_CONF="${GITEA_ETC}/app.ini"
 
 # 读取 wizard 配置
 WIZARD_PORT="${wizard_port:-${TRIM_SERVICE_PORT}}"
-DISABLE_REGISTRATION="${wizard_disable_registration:-true}
+DISABLE_REGISTRATION="${wizard_disable_registration:-true}"
 
 export USER="${GITEA_USER}"
 export HOME="${GITEA_HOME}"
