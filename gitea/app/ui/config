@@ -3,10 +3,11 @@
     "gitea.main": {
       "title": "Gitea",
       "icon": "images/icon_{0}.png",
-      "type": "url",
-      "protocol": "http",
-      "port": "3000",
-      "url": "/",
+      "type": "iframe",
+      "protocol": "",
+      "gatewaySocket": "gitea.sock",
+      "gatewayPrefix": "/app/gitea",
+      "url": "/app/gitea",
       "allUsers": true
     }
   }

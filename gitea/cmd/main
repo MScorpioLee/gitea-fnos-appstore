@@ -39,12 +39,12 @@ RUN_USER = ${GITEA_USER}
 RUN_MODE = prod
 
 [server]
-PROTOCOL = http
+PROTOCOL = unix
+UNIX_SOCKET = ${TRIM_APPDEST}/gitea.sock
 DOMAIN = localhost
-ROOT_URL = http://localhost:${TRIM_SERVICE_PORT}/
-HTTP_ADDR = 0.0.0.0
-HTTP_PORT = ${WIZARD_PORT}
+ROOT_URL = /app/gitea/
 DISABLE_SSH = true
+LOCAL_ROOT_URL = http://localhost:3000/
 
 [database]
 DB_TYPE = ${DB_TYPE}
@@ -105,8 +105,8 @@ start)
     fi
 
     # 创建必要的目录
-    mkdir -p "${GITEA_HOME}" "${GITEA_VAR}" "${GITEA_ETC}"
-    chown -R "${GITEA_USER}:${GITEA_USER}" "${GITEA_HOME}" "${GITEA_VAR}" "${GITEA_ETC}"
+    mkdir -p "${GITEA_HOME}" "${GITEA_VAR}" "${GITEA_ETC}" "${TRIM_APPDEST}"
+    chown -R "${GITEA_USER}:${GITEA_USER}" "${GITEA_HOME}" "${GITEA_VAR}" "${GITEA_ETC}" "${TRIM_APPDEST}"
 
     # 如果配置文件不存在，生成默认配置
     if [ ! -f "${GITEA_CONF}" ]; then
