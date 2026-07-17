@@ -1,0 +1,51 @@
+name: pack_amd64
+run-name: ${{ github.actor }} build amd64 ${{ github.ref_name }} ${{ github.sha }}
+
+on:
+  workflow_call:
+    inputs:
+      target_version:
+        required: true
+        type: string
+      this_pack_manifest_version:
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      target_version: ${{ inputs.target_version }}
+      this_pack_manifest_version: ${{ inputs.this_pack_manifest_version }}
+      target_arch: amd64
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 下载 fnpack
+        run: |
+          wget -q https://static2.fnnas.com/fnpack/fnpack-1.2.3-linux-amd64 -O fnpack
+          chmod +x fnpack
+          ./fnpack --help
+
+      - name: 下载 Gitea 二进制
+        run: |
+          mkdir -p ./gitea/app
+          wget -q https://dl.gitea.com/gitea/${{ env.target_version }}/gitea-${{ env.target_version }}-linux-${{ env.target_arch }} -O ./gitea/app/gitea
+          chmod +x ./gitea/app/gitea
+          ./gitea/app/gitea -v || true
+
+      - name: 替换 manifest 版本和平台
+        run: |
+          sed -i "s/this_pack_manifest_version/${{ env.this_pack_manifest_version }}/g" ./gitea/manifest
+          sed -i "s/this_pack_manifest_platform/x86/g" ./gitea/manifest
+
+      - name: fnpack 打包
+        run: |
+          ./fnpack build --directory ./gitea
+          mv gitea.fpk gitea-${{ env.this_pack_manifest_version }}.${{ env.target_arch }}.fpk
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitea-${{ env.this_pack_manifest_version }}.${{ env.target_arch }}.fpk
+          path: gitea-${{ env.this_pack_manifest_version }}.${{ env.target_arch }}.fpk

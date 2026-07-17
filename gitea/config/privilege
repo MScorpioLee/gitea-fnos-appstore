@@ -1,0 +1,10 @@
+{
+  "privilege": {
+    "priperm": {
+      "network": true,
+      "port": [
+        3000
+      ]
+    }
+  }
+}

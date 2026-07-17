@@ -1,0 +1,11 @@
+[
+  {
+    "stepTitle": "确认卸载 Gitea",
+    "items": [
+      {
+        "type": "tips",
+        "helpText": "卸载 Gitea 不会自动删除数据库和仓库数据。如需彻底清理，请手动删除 /var/apps/gitea/var 目录。"
+      }
+    ]
+  }
+]

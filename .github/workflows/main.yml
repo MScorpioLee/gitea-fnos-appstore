@@ -1,0 +1,82 @@
+name: Build fpk
+run-name: ${{ github.ref_name }} ${{ github.sha }}
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+    inputs:
+      make_release:
+        description: 'Create GitHub Release?'
+        required: true
+        type: boolean
+        default: false
+
+env:
+  target_version: "1.22.0"
+  this_pack_manifest_version: "1.22.0-1"
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      target_version: ${{ env.target_version }}
+      this_pack_manifest_version: ${{ env.this_pack_manifest_version }}
+    steps:
+      - run: echo "All set!"
+
+  pack-amd64:
+    uses: ./.github/workflows/pack_amd64.yml
+    secrets: inherit
+    needs: setup
+    with:
+      target_version: ${{ needs.setup.outputs.target_version }}
+      this_pack_manifest_version: ${{ needs.setup.outputs.this_pack_manifest_version }}
+
+  pack-arm64:
+    uses: ./.github/workflows/pack_arm64.yml
+    secrets: inherit
+    needs: setup
+    with:
+      target_version: ${{ needs.setup.outputs.target_version }}
+      this_pack_manifest_version: ${{ needs.setup.outputs.this_pack_manifest_version }}
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [pack-amd64, pack-arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+
+      - name: Flatten assets
+        run: |
+          mkdir -p flat
+          find release-assets -type f -name '*.fpk' -exec cp -v {} flat/ \;
+          cd flat
+          sha256sum * > SHA256SUMS.txt
+          cd ..
+          ls -lh flat/
+
+      - name: Create Release
+        if: ${{ inputs.make_release }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ env.this_pack_manifest_version }}"             --title "Gitea ${{ env.this_pack_manifest_version }}"             --notes "Gitea for fnOS ${{ env.this_pack_manifest_version }}"             --prerelease
+
+      - name: Upload Release Assets
+        if: ${{ inputs.make_release }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for f in flat/*; do
+            gh release upload "${{ env.this_pack_manifest_version }}" "$f" || echo "Failed: $f"
+          done

@@ -1,0 +1,137 @@
+#!/bin/bash
+
+echo -e "$(date +'%Y/%m/%d %H:%M:%S')\t" $0 $*
+
+GITEA_USER="gitea"
+GITEA_HOME="${TRIM_PKGHOME}"
+GITEA_VAR="${TRIM_PKGVAR}"
+GITEA_ETC="${TRIM_PKGETC}"
+GITEA_CONF="${GITEA_ETC}/app.ini"
+
+export USER="${GITEA_USER}"
+export HOME="${GITEA_HOME}"
+export GITEA_WORK_DIR="${GITEA_HOME}"
+
+# 读取 wizard 配置，没有则使用默认值
+DB_TYPE="${db_type:-sqlite}"
+DB_HOST="${db_host:-localhost}"
+DB_PORT="${db_port:-5432}"
+DB_NAME="${db_name:-gitea}"
+DB_USER="${db_user:-gitea}"
+DB_PASS="${db_password:-}"
+
+# SQLite 路径固定到 var 目录
+if [ "${DB_TYPE}" = "sqlite" ]; then
+    DB_SQLITE_PATH="${GITEA_VAR}/gitea.db"
+fi
+
+write_config() {
+    SECRET_KEY=$(openssl rand -hex 16 2>/dev/null || head -c 32 /dev/urandom | xxd -p)
+    INTERNAL_TOKEN=$(openssl rand -hex 32 2>/dev/null || head -c 64 /dev/urandom | xxd -p)
+
+    cat > "${GITEA_CONF}" <<EOF
+APP_NAME = Gitea
+RUN_USER = ${GITEA_USER}
+RUN_MODE = prod
+
+[server]
+PROTOCOL = http
+DOMAIN = localhost
+ROOT_URL = http://localhost:${TRIM_SERVICE_PORT}/
+HTTP_ADDR = 0.0.0.0
+HTTP_PORT = ${TRIM_SERVICE_PORT}
+DISABLE_SSH = true
+
+[database]
+DB_TYPE = ${DB_TYPE}
+EOF
+
+    if [ "${DB_TYPE}" = "sqlite" ]; then
+        echo "PATH = ${DB_SQLITE_PATH}" >> "${GITEA_CONF}"
+    elif [ "${DB_TYPE}" = "mysql" ]; then
+        cat >> "${GITEA_CONF}" <<EOF
+HOST = ${DB_HOST}:${DB_PORT}
+NAME = ${DB_NAME}
+USER = ${DB_USER}
+PASSWD = ${DB_PASS}
+EOF
+    elif [ "${DB_TYPE}" = "postgres" ] || [ "${DB_TYPE}" = "postgresql" ]; then
+        cat >> "${GITEA_CONF}" <<EOF
+HOST = ${DB_HOST}:${DB_PORT}
+NAME = ${DB_NAME}
+USER = ${DB_USER}
+PASSWD = ${DB_PASS}
+SSL_MODE = disable
+EOF
+    fi
+
+    cat >> "${GITEA_CONF}" <<EOF
+
+[security]
+INSTALL_LOCK = false
+SECRET_KEY = ${SECRET_KEY}
+INTERNAL_TOKEN = ${INTERNAL_TOKEN}
+
+[service]
+DISABLE_REGISTRATION = true
+
+[packages]
+ENABLED = false
+
+[repository]
+ROOT = ${GITEA_VAR}/repositories
+EOF
+
+    chown "${GITEA_USER}:${GITEA_USER}" "${GITEA_CONF}"
+    chmod 640 "${GITEA_CONF}"
+}
+
+case $1 in
+start)
+    # 检查是否已经在运行
+    processNum=$(pgrep -c -f "${TRIM_APPDEST}/app/gitea web")
+    if [[ ! $processNum -eq 0 ]]; then
+        echo "gitea is already running"
+        exit 0
+    fi
+
+    # 确保 gitea 用户存在
+    if ! id -u "${GITEA_USER}" > /dev/null 2>&1; then
+        useradd -r -m -d "${GITEA_HOME}" -s /bin/bash "${GITEA_USER}" || true
+    fi
+
+    # 创建必要的目录
+    mkdir -p "${GITEA_HOME}" "${GITEA_VAR}" "${GITEA_ETC}"
+    chown -R "${GITEA_USER}:${GITEA_USER}" "${GITEA_HOME}" "${GITEA_VAR}" "${GITEA_ETC}"
+
+    # 如果配置文件不存在，生成默认配置
+    if [ ! -f "${GITEA_CONF}" ]; then
+        write_config
+    fi
+
+    echo "starting gitea with DB_TYPE=${DB_TYPE}..."
+    nohup "${TRIM_APPDEST}/app/gitea" web -c "${GITEA_CONF}" >>"${TRIM_TEMP_LOGFILE}" 2>&1 &
+    RETVAL=$?
+    if [ $RETVAL -eq 0 ]; then
+        exit 0
+    else
+        echo "gitea start failed" > "${TRIM_TEMP_LOGFILE}"
+        exit 1
+    fi
+    ;;
+stop)
+    pkill -9 -f "${TRIM_APPDEST}/app/gitea web" || echo "pkill fail $?"
+    ;;
+status)
+    processNum=$(pgrep -c -f "${TRIM_APPDEST}/app/gitea web")
+    if [[ ! $processNum -eq 0 ]]; then
+        echo "gitea is already running"
+        exit 0
+    else
+        exit 3
+    fi
+    ;;
+*)
+    exit 1
+    ;;
+esac

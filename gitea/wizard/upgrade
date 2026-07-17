@@ -1,0 +1,11 @@
+[
+  {
+    "stepTitle": "升级 Gitea",
+    "items": [
+      {
+        "type": "tips",
+        "helpText": "升级前建议备份 /var/apps/gitea/var 目录下的数据。"
+      }
+    ]
+  }
+]
