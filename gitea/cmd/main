@@ -120,7 +120,7 @@ start)
     fi
 
     echo "starting gitea with DB_TYPE=${DB_TYPE}..."
-    nohup "${TRIM_APPDEST}/app/gitea" web -c "${GITEA_CONF}" >>"${TRIM_TEMP_LOGFILE}" 2>&1 &
+    nohup "${TRIM_APPDEST}/gitea" web -c "${GITEA_CONF}" >>"${TRIM_TEMP_LOGFILE}" 2>&1 &
     RETVAL=$?
     if [ $RETVAL -eq 0 ]; then
         exit 0
