@@ -8,6 +8,10 @@ GITEA_VAR="${TRIM_PKGVAR}"
 GITEA_ETC="${TRIM_PKGETC}"
 GITEA_CONF="${GITEA_ETC}/app.ini"
 
+# 读取 wizard 配置
+WIZARD_PORT="${wizard_port:-${TRIM_SERVICE_PORT}}"
+DISABLE_REGISTRATION="${wizard_disable_registration:-true}
+
 export USER="${GITEA_USER}"
 export HOME="${GITEA_HOME}"
 export GITEA_WORK_DIR="${GITEA_HOME}"
@@ -39,7 +43,7 @@ PROTOCOL = http
 DOMAIN = localhost
 ROOT_URL = http://localhost:${TRIM_SERVICE_PORT}/
 HTTP_ADDR = 0.0.0.0
-HTTP_PORT = ${TRIM_SERVICE_PORT}
+HTTP_PORT = ${WIZARD_PORT}
 DISABLE_SSH = true
 
 [database]
@@ -73,7 +77,7 @@ SECRET_KEY = ${SECRET_KEY}
 INTERNAL_TOKEN = ${INTERNAL_TOKEN}
 
 [service]
-DISABLE_REGISTRATION = true
+DISABLE_REGISTRATION = ${DISABLE_REGISTRATION}
 
 [packages]
 ENABLED = false

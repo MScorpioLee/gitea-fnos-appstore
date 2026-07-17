@@ -1,0 +1,58 @@
+name: Check upstream Gitea release
+run-name: Check upstream Gitea release
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # 每天凌晨 2 点
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  check-and-update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 获取当前配置的 Gitea 版本
+        id: current
+        run: |
+          CURRENT_VERSION=$(grep 'target_version:' .github/workflows/main.yml | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $CURRENT_VERSION"
+
+      - name: 获取上游最新 Gitea 版本
+        id: upstream
+        run: |
+          # 从 dl.gitea.com 获取最新版本目录
+          LATEST=$(curl -sL https://dl.gitea.com/gitea/ | grep -oE 'href="[0-9]+\.[0-9]+\.[0-9]+"' | sed 's/href="//;s/"$//' | sort -V | tail -1)
+          echo "latest=$LATEST" >> $GITHUB_OUTPUT
+          echo "Latest upstream version: $LATEST"
+
+      - name: 更新版本号并触发打包
+        if: steps.current.outputs.current != steps.upstream.outputs.latest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LATEST="${{ steps.upstream.outputs.latest }}"
+          CURRENT="${{ steps.current.outputs.current }}"
+          echo "Updating from $CURRENT to $LATEST"
+          
+          # 更新 main.yml 中的版本号
+          sed -i "s/target_version: "$CURRENT"/target_version: "$LATEST"/g" .github/workflows/main.yml
+          sed -i "s/this_pack_manifest_version: "$CURRENT-1"/this_pack_manifest_version: "$LATEST-1"/g" .github/workflows/main.yml
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/workflows/main.yml
+          git commit -m "chore: bump Gitea to $LATEST"
+          git push
+
+      - name: 触发打包 Release
+        if: steps.current.outputs.current != steps.upstream.outputs.latest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run main.yml --repo=${{ github.repository }} -f make_release=true

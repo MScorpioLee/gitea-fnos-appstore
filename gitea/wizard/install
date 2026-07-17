@@ -5,6 +5,28 @@
       {
         "type": "tips",
         "helpText": "Gitea 是一个轻量级的自托管 Git 服务。本应用默认使用 SQLite 数据库，无需额外配置。如需使用外部 PostgreSQL 或 MySQL，请在下个步骤配置。"
+      },
+      {
+        "type": "text",
+        "field": "wizard_port",
+        "label": "Gitea 监听端口",
+        "initValue": "3000",
+        "rules": [
+          {
+            "required": true,
+            "message": "请输入端口"
+          },
+          {
+            "pattern": "^[0-9]+$",
+            "message": "端口必须是数字"
+          }
+        ]
+      },
+      {
+        "type": "switch",
+        "field": "wizard_disable_registration",
+        "label": "关闭公开注册",
+        "initValue": "true"
       }
     ]
   },
