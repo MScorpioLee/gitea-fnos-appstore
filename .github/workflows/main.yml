@@ -65,12 +65,17 @@ jobs:
           cd ..
           ls -lh flat/
 
-      - name: Create Release
+      - name: Create or Get Release
         if: ${{ inputs.make_release }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${{ env.this_pack_manifest_version }}"             --title "Gitea ${{ env.this_pack_manifest_version }}"             --notes "Gitea for fnOS ${{ env.this_pack_manifest_version }}"             --prerelease
+          # 如果 release 不存在则创建，存在则跳过
+          gh release view "${{ env.this_pack_manifest_version }}" --repo "${{ github.repository }}" > /dev/null 2>&1 || \
+          gh release create "${{ env.this_pack_manifest_version }}" \
+            --title "Gitea ${{ env.this_pack_manifest_version }}" \
+            --notes "Gitea for fnOS ${{ env.this_pack_manifest_version }}" \
+            --prerelease
 
       - name: Upload Release Assets
         if: ${{ inputs.make_release }}
@@ -78,5 +83,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           for f in flat/*; do
-            gh release upload "${{ env.this_pack_manifest_version }}" "$f" || echo "Failed: $f"
+            gh release upload "${{ env.this_pack_manifest_version }}" "$f" --clobber || echo "Failed: $f"
           done
