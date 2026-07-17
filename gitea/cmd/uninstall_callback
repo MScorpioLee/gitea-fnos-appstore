@@ -1,2 +1,23 @@
 #!/bin/bash
+
 echo -e "$(date +'%Y/%m/%d %H:%M:%S')\t" $0 $*
+
+ACTION="${wizard_data_action:-keep}"
+BACKUP_DIR="/vol2/1000/gitea-backup-$(date +%Y%m%d%H%M%S)"
+
+if [ "${ACTION}" = "keep" ]; then
+    echo "正在备份 Gitea 数据到 ${BACKUP_DIR} ..."
+    mkdir -p "${BACKUP_DIR}"
+    if [ -d "${TRIM_PKGVAR}" ]; then
+        cp -a "${TRIM_PKGVAR}" "${BACKUP_DIR}/var" 2>/dev/null || echo "backup var skipped"
+    fi
+    if [ -d "${TRIM_PKGETC}" ]; then
+        cp -a "${TRIM_PKGETC}" "${BACKUP_DIR}/etc" 2>/dev/null || echo "backup etc skipped"
+    fi
+    if [ -d "${TRIM_PKGHOME}" ]; then
+        cp -a "${TRIM_PKGHOME}" "${BACKUP_DIR}/home" 2>/dev/null || echo "backup home skipped"
+    fi
+    echo "备份完成：${BACKUP_DIR}"
+else
+    echo "删除 Gitea 数据（不保留备份）"
+fi

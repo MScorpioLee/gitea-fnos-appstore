@@ -4,7 +4,29 @@
     "items": [
       {
         "type": "tips",
-        "helpText": "卸载 Gitea 不会自动删除数据库和仓库数据。如需彻底清理，请手动删除 /var/apps/gitea/var 目录。"
+        "helpText": "请选择如何处理 Gitea 数据（数据库、仓库、配置文件）："
+      },
+      {
+        "type": "radio",
+        "field": "wizard_data_action",
+        "label": "数据保留选项",
+        "initValue": "keep",
+        "options": [
+          {
+            "label": "保留数据（推荐，卸载后数据备份到 /vol2/1000/gitea-backup-时间戳）",
+            "value": "keep"
+          },
+          {
+            "label": "删除所有数据（不可恢复）",
+            "value": "delete"
+          }
+        ],
+        "rules": [
+          {
+            "required": true,
+            "message": "请选择数据处理方式"
+          }
+        ]
       }
     ]
   }
