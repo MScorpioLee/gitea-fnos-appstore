@@ -39,7 +39,7 @@ RUN_USER = ${GITEA_USER}
 RUN_MODE = prod
 
 [server]
-PROTOCOL = unix
+PROTOCOL = http+unix
 UNIX_SOCKET = ${TRIM_APPDEST}/gitea.sock
 DOMAIN = localhost
 ROOT_URL = /app/gitea/
