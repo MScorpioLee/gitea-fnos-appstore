@@ -93,7 +93,7 @@ EOF
 case $1 in
 start)
     # 检查是否已经在运行
-    processNum=$(pgrep -c -f "${TRIM_APPDEST}/app/gitea web")
+    processNum=$(pgrep -c -f "${TRIM_APPDEST}/gitea web")
     if [[ ! $processNum -eq 0 ]]; then
         echo "gitea is already running"
         exit 0
