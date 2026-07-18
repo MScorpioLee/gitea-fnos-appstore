@@ -50,7 +50,7 @@ RUN_MODE = prod
 
 [server]
 PROTOCOL = http+unix
-UNIX_SOCKET = ${TRIM_APPDEST}/gitea.sock
+HTTP_ADDR = ${TRIM_APPDEST}/gitea.sock
 DOMAIN = localhost
 ROOT_URL = /app/gitea/
 DISABLE_SSH = true
