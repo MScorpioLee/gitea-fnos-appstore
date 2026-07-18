@@ -7,6 +7,10 @@
         "helpText": "Gitea 是一个轻量级的自托管 Git 服务。本应用默认使用 SQLite 数据库，无需额外配置。如需使用外部 PostgreSQL 或 MySQL，请在下个步骤配置。"
       },
       {
+        "type": "tips",
+        "helpText": "安装完成后，请在应用中心的 Gitea 设置里点击「授权目录」，选择 Gitea 可以访问的文件夹（如 /vol2/1000/gitea）。Gitea 将把数据库和仓库放在该目录下。"
+      },
+      {
         "type": "text",
         "field": "wizard_port",
         "label": "Gitea 监听端口",

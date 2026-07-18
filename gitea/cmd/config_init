@@ -1,0 +1,9 @@
+#!/bin/bash
+
+echo -e "$(date +'%Y/%m/%d %H:%M:%S')\t" $0 $*
+
+# 授权目录变更时，通知 Gitea 更新数据目录
+# 实际数据目录在 cmd/main 启动时根据 TRIM_DATA_ACCESSIBLE_PATHS 重新计算
+
+echo "Gitea config_init: TRIM_DATA_ACCESSIBLE_PATHS=${TRIM_DATA_ACCESSIBLE_PATHS}"
+exit 0

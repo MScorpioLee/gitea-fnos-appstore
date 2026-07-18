@@ -1,0 +1,9 @@
+#!/bin/bash
+
+echo -e "$(date +'%Y/%m/%d %H:%M:%S')\t" $0 $*
+
+# 授权目录变更完成后，通知 Gitea 应用新配置
+# 如果 Gitea 正在运行，可以在这里重启它
+
+echo "Gitea config_callback: TRIM_DATA_ACCESSIBLE_PATHS=${TRIM_DATA_ACCESSIBLE_PATHS}"
+exit 0
